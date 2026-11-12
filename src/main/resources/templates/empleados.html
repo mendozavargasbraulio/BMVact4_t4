@@ -1,0 +1,62 @@
+
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Empleados</title>
+</head>
+<body>
+
+    <h1>Sistema de gestión de empleados</h1>
+
+    <p>
+        <a th:href="@{/empleados/nuevo}">
+            Registrar nuevo empleado
+        </a>
+    </p>
+
+    <p>
+        <a th:href="@{/departamentos}">
+            Gestionar departamentos
+        </a>
+    </p>
+
+    <h2>Lista de empleados</h2>
+
+    <table border="1">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Nombre</th>
+                <th>Apellido</th>
+                <th>Puesto</th>
+                <th>Departamento</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            <tr th:each="empleado : ${empleados}">
+                <td th:text="${empleado.id}"></td>
+                <td th:text="${empleado.nombre}"></td>
+                <td th:text="${empleado.apellido}"></td>
+                <td th:text="${empleado.puesto}"></td>
+                <td th:text="${empleado.departamento.nombre}"></td>
+
+                <td>
+                    <a th:href="@{/empleados/editar/{id}(id=${empleado.id})}">
+                        Editar
+                    </a>
+
+                    <form th:action="@{/empleados/eliminar/{id}(id=${empleado.id})}"
+                          method="post">
+
+                        <button type="submit">Eliminar</button>
+                    </form>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+</body>
+</html>

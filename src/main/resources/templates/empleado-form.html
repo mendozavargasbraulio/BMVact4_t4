@@ -1,0 +1,60 @@
+
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Formulario de empleados</title>
+</head>
+<body>
+
+    <h1 th:text="${empleado.id == null} ? 'Registrar empleado' : 'Editar empleado'">
+        Formulario de empleado
+    </h1>
+
+    <form th:action="@{${accion}}" method="post">
+
+        <p>
+            Nombre:
+            <input type="text" name="nombre"
+                   th:value="${empleado.nombre}" required>
+        </p>
+
+        <p>
+            Apellido:
+            <input type="text" name="apellido"
+                   th:value="${empleado.apellido}" required>
+        </p>
+
+        <p>
+            Puesto:
+            <input type="text" name="puesto"
+                   th:value="${empleado.puesto}" required>
+        </p>
+
+        <p>
+            Departamento:
+            <select name="departamentoId" required>
+                <option value="">Selecciona un departamento</option>
+
+                <option th:each="departamento : ${departamentos}"
+                        th:value="${departamento.id}"
+                        th:text="${departamento.nombre}"
+                        th:selected="${empleado.departamento != null and empleado.departamento.id == departamento.id}">
+                </option>
+            </select>
+        </p>
+
+        <button type="submit">Guardar empleado</button>
+
+    </form>
+
+    <p>
+        <a th:href="@{/empleados}">Volver a empleados</a>
+    </p>
+
+    <p>
+        <a th:href="@{/departamentos}">Registrar departamento</a>
+    </p>
+
+</body>
+</html>
