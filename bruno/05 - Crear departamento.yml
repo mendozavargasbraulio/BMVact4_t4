@@ -1,0 +1,25 @@
+info:
+  name: 05 - Crear departamento
+  type: http
+  seq: 5
+
+http:
+  method: POST
+  url: "{{baseUrl}}/api/departamentos"
+  body:
+    type: json
+    data: |-
+      {
+        "nombre": "Sistemas",
+        "descripcion": "Departamento de desarrollo de software"
+      }
+  auth:
+    type: bearer
+    token: "{{token}}"
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: false

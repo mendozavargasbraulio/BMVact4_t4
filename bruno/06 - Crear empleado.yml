@@ -1,0 +1,27 @@
+info:
+  name: 06 - Crear empleado
+  type: http
+  seq: 6
+
+http:
+  method: POST
+  url: "{{baseUrl}}/api/empleados"
+  body:
+    type: json
+    data: |-
+      {
+        "nombre": "Carlos",
+        "apellido": "Mendoza",
+        "puesto": "Desarrollador",
+        "departamentoId": 1
+      }
+  auth:
+    type: bearer
+    token: "{{token}}"
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: false

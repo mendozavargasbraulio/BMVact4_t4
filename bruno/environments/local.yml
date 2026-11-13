@@ -1,0 +1,10 @@
+name: local
+variables:
+  - name: baseUrl
+    value: http://localhost:8088
+    description: ""
+  - name: testEmail
+    value: bruno.prueba@example.com
+    description: ""
+  - secret: true
+    name: testPassword

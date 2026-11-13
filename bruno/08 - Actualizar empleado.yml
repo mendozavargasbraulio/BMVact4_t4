@@ -1,0 +1,27 @@
+info:
+  name: 08 - Actualizar empleado
+  type: http
+  seq: 8
+
+http:
+  method: PUT
+  url: "{{baseUrl}}/api/empleados/1"
+  body:
+    type: json
+    data: |-
+      {
+        "nombre": "Carlos",
+        "apellido": "Mendoza",
+        "puesto": "Analista de Sistemas",
+        "departamentoId": 1
+      }
+  auth:
+    type: bearer
+    token: "{{token}}"
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: false
