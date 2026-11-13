@@ -1,108 +1,74 @@
-
 package com.edticsa.demoCrud.controllers;
 
-import com.edticsa.demoCrud.models.Empleado;
-import com.edticsa.demoCrud.models.Departamento;
+import com.edticsa.demoCrud.dto.EmpleadoRequestDTO;
+import com.edticsa.demoCrud.dto.EmpleadoResponseDTO;
 import com.edticsa.demoCrud.services.EmpleadoService;
-import com.edticsa.demoCrud.services.DepartamentoService;
-
+import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
 
-@Controller
-@RequestMapping("/empleados")
+import java.util.Map;
+
+@RestController
+@RequestMapping("/api/empleados")
 public class EmpleadoController {
 
     private final EmpleadoService empleadoService;
-    private final DepartamentoService departamentoService;
 
-    public EmpleadoController(
-            EmpleadoService empleadoService,
-            DepartamentoService departamentoService) {
+    public EmpleadoController(EmpleadoService empleadoService) {
         this.empleadoService = empleadoService;
-        this.departamentoService = departamentoService;
     }
 
+    // a) GET para listar con paginación: /api/empleados?page=0&size=5
     @GetMapping
-    public String listar(Model model) {
-        model.addAttribute("empleados", empleadoService.listar());
-        return "empleados";
+    public ResponseEntity<Page<EmpleadoResponseDTO>> listar(@PageableDefault(size = 10) Pageable pageable) {
+        return ResponseEntity.ok(empleadoService.listarPaginado(pageable));
     }
 
-    @GetMapping("/nuevo")
-    public String nuevo(Model model) {
-        model.addAttribute("empleado", new Empleado());
-        model.addAttribute("departamentos", departamentoService.listar());
-        model.addAttribute("accion", "/empleados/crear");
-        return "empleado-form";
+    // a) GET para ver un registro individual: /api/empleados/{id}
+    @GetMapping("/{id}")
+    public ResponseEntity<?> obtenerPorId(@PathVariable Long id) {
+        return empleadoService.obtenerPorId(id)
+                .<ResponseEntity<?>>map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(Map.of("error", "Empleado no encontrado con ID: " + id)));
     }
 
-    @PostMapping("/crear")
-    public String crear(
-            @RequestParam String nombre,
-            @RequestParam String apellido,
-            @RequestParam String puesto,
-            @RequestParam Long departamentoId) {
-
-        Empleado empleado = new Empleado();
-        empleado.setNombre(nombre);
-        empleado.setApellido(apellido);
-        empleado.setPuesto(puesto);
-
-        Departamento departamento = new Departamento();
-        departamento.setId(departamentoId);
-        empleado.setDepartamento(departamento);
-
-        empleadoService.guardar(empleado);
-
-        return "redirect:/empleados";
+    // b) POST para crear
+    @PostMapping
+    public ResponseEntity<?> crear(@Valid @RequestBody EmpleadoRequestDTO dto) {
+        try {
+            EmpleadoResponseDTO creado = empleadoService.crear(dto);
+            return ResponseEntity.status(HttpStatus.CREATED).body(creado);
+        } catch (IllegalArgumentException ex) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", ex.getMessage()));
+        }
     }
 
-    @GetMapping("/editar/{id}")
-    public String editar(@PathVariable Long id, Model model) {
-
-        Empleado empleado = empleadoService.buscarPorId(id)
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND, "Empleado no encontrado"));
-
-        model.addAttribute("empleado", empleado);
-        model.addAttribute("departamentos", departamentoService.listar());
-        model.addAttribute("accion", "/empleados/actualizar/" + id);
-
-        return "empleado-form";
+    // c) PUT para actualizar
+    @PutMapping("/{id}")
+    public ResponseEntity<?> actualizar(@PathVariable Long id, @Valid @RequestBody EmpleadoRequestDTO dto) {
+        try {
+            return empleadoService.actualizar(id, dto)
+                    .<ResponseEntity<?>>map(ResponseEntity::ok)
+                    .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND)
+                            .body(Map.of("error", "Empleado no encontrado con ID: " + id)));
+        } catch (IllegalArgumentException ex) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", ex.getMessage()));
+        }
     }
 
-    @PostMapping("/actualizar/{id}")
-    public String actualizar(
-            @PathVariable Long id,
-            @RequestParam String nombre,
-            @RequestParam String apellido,
-            @RequestParam String puesto,
-            @RequestParam Long departamentoId) {
-
-        Empleado empleado = empleadoService.buscarPorId(id)
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND, "Empleado no encontrado"));
-
-        empleado.setNombre(nombre);
-        empleado.setApellido(apellido);
-        empleado.setPuesto(puesto);
-
-        Departamento departamento = new Departamento();
-        departamento.setId(departamentoId);
-        empleado.setDepartamento(departamento);
-
-        empleadoService.guardar(empleado);
-
-        return "redirect:/empleados";
-    }
-
-    @PostMapping("/eliminar/{id}")
-    public String eliminar(@PathVariable Long id) {
-        empleadoService.eliminar(id);
-        return "redirect:/empleados";
+    // d) DELETE para eliminar
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> eliminar(@PathVariable Long id) {
+        if (empleadoService.eliminar(id)) {
+            return ResponseEntity.ok(Map.of("mensaje", "Empleado eliminado correctamente"));
+        }
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(Map.of("error", "Empleado no encontrado con ID: " + id));
     }
 }

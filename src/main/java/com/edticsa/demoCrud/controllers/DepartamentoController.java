@@ -1,15 +1,17 @@
-
 package com.edticsa.demoCrud.controllers;
 
-import com.edticsa.demoCrud.models.Departamento;
+import com.edticsa.demoCrud.dto.DepartamentoDTO;
 import com.edticsa.demoCrud.services.DepartamentoService;
-
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
+import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-@Controller
-@RequestMapping("/departamentos")
+import java.util.List;
+import java.util.Map;
+
+@RestController
+@RequestMapping("/api/departamentos")
 public class DepartamentoController {
 
     private final DepartamentoService departamentoService;
@@ -19,22 +21,20 @@ public class DepartamentoController {
     }
 
     @GetMapping
-    public String listar(Model model) {
-        model.addAttribute("departamentos", departamentoService.listar());
-        return "departamentos";
+    public ResponseEntity<List<DepartamentoDTO>> listar() {
+        return ResponseEntity.ok(departamentoService.listarTodos());
     }
 
-    @PostMapping("/crear")
-    public String crear(
-            @RequestParam String nombre,
-            @RequestParam String descripcion) {
+    @GetMapping("/{id}")
+    public ResponseEntity<?> obtenerPorId(@PathVariable Long id) {
+        return departamentoService.obtenerPorId(id)
+                .<ResponseEntity<?>>map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(Map.of("error", "Departamento no encontrado con ID: " + id)));
+    }
 
-        Departamento departamento = new Departamento();
-        departamento.setNombre(nombre);
-        departamento.setDescripcion(descripcion);
-
-        departamentoService.guardar(departamento);
-
-        return "redirect:/departamentos";
+    @PostMapping
+    public ResponseEntity<DepartamentoDTO> crear(@Valid @RequestBody DepartamentoDTO dto) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(departamentoService.crear(dto));
     }
 }
